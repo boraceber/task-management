@@ -7,6 +7,7 @@
         prepend-inner-icon="mdi-magnify"
         solo-inverted
         label="Search tasks"
+        small
       ></v-text-field>
       <v-spacer></v-spacer>
       <v-icon left class="mr-5">mdi-bell</v-icon>
@@ -38,13 +39,8 @@
     </v-app-bar>
 
     <v-navigation-drawer v-model="drawer" app class="secondary" clipped>
-      <v-expansion-panels flat accordion hover focusable class="mt-4">
-        <v-expansion-panel
-          v-for="item in menu"
-          :key="item.title"
-          class="secondary"
-
-        >
+      <v-expansion-panels flat accordion hover focusable class="mt-4 ml-n1">
+        <v-expansion-panel v-for="item in menu" :key="item.title" class="secondary">
           <v-expansion-panel-header>
             <div>
               <v-icon :color="item.color" class="mr-4">{{item.icon}}</v-icon>
@@ -55,65 +51,68 @@
             </template>
           </v-expansion-panel-header>
           <template v-if="item.subitems">
-            <v-expansion-panel-content>
+            <v-expansion-panel-content style="position:relative">
+              <v-form class="d-flex" @submit.prevent>
+                <v-btn icon color="primary" small class="mt-2" @click="palette = !palette">
+                  <v-icon left :color="fill">mdi-format-color-fill</v-icon>
+                  <v-spacer></v-spacer>
+                </v-btn>
 
-                <v-combobox flat
-                v-model="chips"
-                :items="item.subitems"
-                chips
-                label="Your favorite hobbies"
-                multiple    
-                solo
-                append-icon=""
-                >
-                <template v-slot:selection="{ attrs, item, select, selected }">
-                    <v-chip
-                    v-bind="attrs"
-                    :input-value="selected"
-                    close
-                    @click="select"
-                    @click:close="remove(item.id)"
-                    >
-                    <strong>{{ item.title }}</strong>&nbsp;
-                    </v-chip>
-                </template>
-                </v-combobox>
+                <compact-picker flat tile  class="secondary" v-if="palette"
+                  style="position:absolute; right:0px; top: 40px; z-index:5"
+                  @input="updateValue"
+                  :value="colors"
+                  :palette="[ 
+    '#f00', '#00ff00', '#00ff0055', 'rgb(201, 76, 76)', 'rgba(0,0,255,1)', 'hsl(89, 43%, 51%)', 'hsla(89, 43%, 51%, 0.6)'
+  ]"
+                ></compact-picker>
 
-               
+                <v-text-field v- v-model="projectTitle" class="mt-0 mr-1 pt-0"></v-text-field>
+                <v-btn text small class="mt-3" @click="addProject">
+                  <v-icon left big>mdi-plus</v-icon>
+                </v-btn>
+              </v-form>
+              <template>
+                <v-chip v-for="item in projects" :key="item" :color="item.color" dark small close class="ma-1">{{item.title}}</v-chip>
+              </template>
             </v-expansion-panel-content>
           </template>
         </v-expansion-panel>
       </v-expansion-panels>
-      <!-- <v-list class="mt-6">
-        <v-list-item to="/" v-for="item in menu" :key="item.title">
-          
-          <v-list-item-avatar>
-            <v-icon :color="item.color">{{item.icon}}</v-icon>
-          </v-list-item-avatar>
-
-          <v-list-item-content>
-              <v-list-item-title v-text="item.title"></v-list-item-title>
-          </v-list-item-content>
-
-          <v-list-item-action v-if="item.subitems">
-            <v-btn icon>
-              <v-icon color="grey lighten-1">mdi-chevron-down</v-icon>
-            </v-btn>
-          </v-list-item-action>
-        </v-list-item>
-      </v-list>-->
     </v-navigation-drawer>
   </div>
 </template>
 
 <script>
+import { Compact } from "vue-color";
+
 export default {
+  components: {
+    "compact-picker": Compact
+  },
+  methods: {
+    addProject() {
+      //const {title, color} = this.project 
+      this.projects.push({title : this.projectTitle, color: this.fill});
+      this.projectTitle = "";
+      this.fill = "grey"
+
+    },
+    updateValue(e){
+      this.fill = e.hex;
+      this.palette = false;
+    }
+  },
   data: () => ({
     drawer: true,
+    projectTitle: "",
+    projects: [],
+    //updateValue: "",
+    colors: "",
+    fill: "",
+    palette: false,
     menu: [
       { icon: "mdi-inbox-arrow-down", color: "pink", title: "Inbox" },
-      { icon: "mdi-calendar-today", color: "green", title: "Today" },
-      { icon: "mdi-calendar-month", color: "indigo", title: "Next 7 Days" },
       {
         icon: "mdi-laptop-mac",
         color: "red",
@@ -132,7 +131,7 @@ export default {
           { id: "2", title: "ipsum" }
         ]
       },
-      { icon: "mdi-account-multiple", color: "brown", title: "People" },
+      { icon: "mdi-account-multiple", color: "brown", title: "Users" },
       { icon: "mdi-cog-outline", color: "blue-grey", title: "Admin" }
     ]
   })
@@ -145,6 +144,12 @@ export default {
 }
 
 .v-expansion-panel--active > .v-expansion-panel-header {
-    min-height: inherit;
+  min-height: inherit;
+}
+
+.v-expansion-panel-content__wrap {
+  padding: 0 24px 0 !important;
+  flex: 1 1 auto;
+  max-width: 100%;
 }
 </style>
